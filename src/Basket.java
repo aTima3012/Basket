@@ -1,9 +1,8 @@
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Basket {
     protected Product[] cart;
+
     public Basket(Product[] products) {
         this.cart = products;
     }
@@ -24,30 +23,25 @@ public class Basket {
         System.out.println("Итого " + sumProducts + " руб");
     }
 
-    public static Basket loadFromTxtFile(File file) {
-        List<Product> cartFromSavedFile = new ArrayList<>();
-        String[] parts;
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String s;
-            while ((s = br.readLine()) != null) {
-                parts = s.trim().split(" ");
-                cartFromSavedFile.add(new Product(parts[0], Integer.parseInt(parts[1]), Integer.parseInt(parts[2])));
-            }
-        } catch (IOException ex) {
-            System.out.println(ex.getMessage());
-        }
-        return new Basket(cartFromSavedFile.toArray(Product[]::new));
-    }
-
-
-    public void saveTxt(File file) {
-        try (PrintWriter out = new PrintWriter(file)) {
-            for (Product product : cart) {
-                out.println(product.getName() + " " + product.getPrice() + " " + product.getAmount());
-            }
+    public void saveBin(File file) {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
+            out.writeObject(cart);
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
         }
     }
 
+    public static Basket loadFromBinFile(File file) {
+        Product[] cartFromBin = new Product[0];
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
+            try {
+                cartFromBin = (Product[]) in.readObject();
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        }
+        return new Basket(cartFromBin);
+    }
 }

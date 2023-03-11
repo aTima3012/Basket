@@ -10,10 +10,10 @@ public class Main {
         products[2] = new Product("Чай", 200);
         products[3] = new Product("Огурцы", 350);
 
-        File file = new File("basket.txt");
+        File file = new File("basket.bin");
 
         if (file.exists()) {
-            basket = Basket.loadFromTxtFile(file);
+            basket = Basket.loadFromBinFile(file);
         } else {
             basket = new Basket(products);
         }
@@ -31,9 +31,7 @@ public class Main {
             }
             String[] parts = input.split(" ");
             basket.addToCart(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
-            basket.saveTxt(file);
+            basket.saveBin(file);
         }
     }
 }
-
-
