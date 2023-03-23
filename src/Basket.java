@@ -2,21 +2,23 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Basket {
     protected Product[] cart;
     protected ClientLog clientLog;
-    //Конструктор, принимающий массив цен и названий продуктов;
+
     public Basket(Product[] products) {
         this.cart = products;
         this.clientLog = new ClientLog();
     }
-    //Метод добавления amount штук продукта номер productNum в корзину;
+
     public void addToCart(int productNum, int amount) {
         this.cart[productNum - 1].setAmount(this.cart[productNum - 1].getAmount() + amount);
         this.clientLog.log(productNum, amount);
     }
-    //метод вывода на экран покупательской корзины
+
     public void printCart() {
         int sumProducts = 0;
         System.out.println("Ваша корзина:");
@@ -28,19 +30,41 @@ public class Basket {
         }
         System.out.println("Итого " + sumProducts + " руб");
     }
-    /*
-      Также вместо вызова метода saveTxt в методе main сериализуйте корзину в json-формате в файл basket.json.
-      Аналогично при старте программы загружайте корзину десериализацией из json-а из файла basket.json,
-      а не из обычной текстовой сериализации как было до того.
-      При этом логику сериализации в методах в классе корзины трогать не нужно.*/
+
     public void saveJson(File file) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(file, cart);
     }
+
     public static Basket loadFromJsonFile(File file) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         Product[] cartFromJson = mapper.readValue(file, new TypeReference<>() {
         });
         return new Basket(cartFromJson);
+    }
+
+    public void saveTxt(File file) {
+        try (PrintWriter out = new PrintWriter(file)) {
+            for (Product product : cart) {
+                out.println(product.getName() + " " + product.getPrice() + " " + product.getAmount());
+            }
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
+    public static Basket loadFromTxtFile(File file) {
+        List<Product> cartFromSavedFile = new ArrayList<>();
+        String[] parts;
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String s;
+            while ((s = br.readLine()) != null) {
+                parts = s.trim().split(" ");
+                cartFromSavedFile.add(new Product(parts[0], Integer.parseInt(parts[1]), Integer.parseInt(parts[2])));
+            }
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        }
+        return new Basket(cartFromSavedFile.toArray(Product[]::new));
     }
 }
